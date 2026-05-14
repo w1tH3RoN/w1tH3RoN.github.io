@@ -3,598 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Neon Crystals Quest</title>
+    <title>Neon Shift: Infinity</title>
     <style>
-        :root { --bg: #0d0e15; --panel: #161925; --neon-blue: #00f0ff; --neon-purple: #bd00ff; }
+        :root { --bg: #14151b; --panel: #1e202b; --text: #f0f1f5; --accent: #5c8ae6; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: sans-serif; }
-        body { background: var(--bg); color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        #app { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; display: flex; flex-direction: column; background: var(--panel); position: relative; box-shadow: 0 0 30px rgba(0,240,255,0.15); }
-        .screen { display: none; flex-direction: column; height: 100%; padding: 20px; justify-content: center; align-items: center; position: absolute; width: 100%; top: 0; left: 0; }
+        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        #app { width: 340px; height: 100vh; max-height: 680px; display: flex; flex-direction: column; background: var(--panel); position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+        .screen { display: none; flex-direction: column; height: 100%; padding: 20px; justify-content: center; align-items: center; position: absolute; width: 100%; top: 0; left: 0; background: var(--bg); }
         .screen.active { display: flex; }
-        h1 { font-size: 2.3rem; text-shadow: 0 0 12px var(--neon-blue); margin-bottom: 25px; text-align: center; font-weight: 800; }
-        button { background: transparent; border: 2px solid var(--neon-blue); color: #fff; padding: 12px 25px; font-size: 1.1rem; border-radius: 10px; cursor: pointer; margin: 8px 0; width: 85%; transition: 0.2s; text-shadow: 0 0 5px var(--neon-blue); box-shadow: inset 0 0 10px rgba(0,240,255,0.2); font-weight: bold; text-transform: uppercase; }
-        button:active { background: var(--neon-blue); color: #000; text-shadow: none; box-shadow: 0 0 25px var(--neon-blue); }
-        .hud { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); padding: 12px 5px; background: rgba(0,0,0,0.4); font-size: 0.85rem; text-align: center; border-bottom: 2px solid rgba(0,240,255,0.1); }
-        .hud div { font-weight: bold; text-shadow: 0 0 5px rgba(255,255,255,0.3); display: flex; flex-direction: column; justify-content: center; }
-        #canvas-container { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; overflow: hidden; background: rgba(0,0,0,0.25); }
-        canvas { display: block; touch-action: none; background: rgba(0,0,0,0.2); border-radius: 8px; }
-        .shop-bar { width: 100%; display: flex; justify-content: space-around; padding: 10px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05); }
-        .shop-btn { width: 45%; font-size: 0.9rem; padding: 8px; margin: 0; border-color: var(--neon-purple); text-shadow: 0 0 5px var(--neon-purple); box-shadow: inset 0 0 10px rgba(189,0,255,0.2); }
-        .shop-btn.selected { border-color: #fff; box-shadow: 0 0 15px #fff; }
-        .list-container { width: 100%; max-height: 250px; overflow-y: auto; margin-bottom: 20px; }
-        .list-item { width: 100%; display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 1.1rem; }
+        h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 15px; font-weight: bold; text-align: center; }
+        button, input { background: #252839; border: 1px solid #3b3f57; color: #fff; padding: 11px; font-size: 0.95rem; border-radius: 8px; cursor: pointer; margin: 5px 0; width: 90%; text-align: center; outline: none; }
+        button:active { background: var(--accent); }
+        input { background: #14151b; cursor: text; user-select: text; }
+        .hud { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 5px; background: rgba(0,0,0,0.3); font-size: 0.7rem; text-align: center; border-bottom: 2px solid #252839; }
+        .hud div { font-weight: bold; display: flex; flex-direction: column; }
+        #canvas-container { width: 320px; height: 320px; margin: 10px auto; position: relative; border-radius: 8px; overflow: hidden; background: #0b0c10; }
+        canvas { display: block; touch-action: none; }
+        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 92%; margin: 5px auto; }
+        .inv-btn { font-size: 0.7rem; padding: 8px 2px; margin: 0; background: #1e202b; position: relative; }
+        .inv-btn.active-item { border-color: var(--accent); background: #2d3145; }
+        .badge { position: absolute; top: -5px; right: -3px; background: #e65c5c; color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
+        .list-box { width: 90%; max-height: 200px; overflow-y: auto; background: #1e202b; border-radius: 8px; padding: 5px; margin-bottom: 15px; }
+        .list-item { display: flex; justify-content: space-between; padding: 8px; font-size: 0.85rem; border-bottom: 1px solid #252839; }
+        .toggle-container { display: flex; justify-content: space-between; width: 90%; align-items: center; margin: 8px 0; font-size: 0.95rem; }
+        #fps-counter { position: absolute; top: 5px; left: 5px; font-size: 10px; color: #555; display: none; z-index: 10; }
     </style>
 </head>
 <body>
-
 <div id="app">
-    <!-- МЕНЮ -->
-    <div id="menu-screen" class="screen active">
-        <h1>NEON CRYSTALS</h1>
-        <button onclick="startGame('campaign')">Старт Игры</button>
-        <button onclick="showScreen('leaderboard-screen')">Рекорды</button>
+    <div id="fps-counter">FPS: 0</div>
+    <!-- РЕГИСТРАЦИЯ -->
+    <div id="reg-screen" class="screen active">
+        <h1>РЕГИСТРАЦИЯ</h1>
+        <input type="text" id="username" placeholder="Имя игрока" maxlength="12">
+        <button onclick="register()">Войти</button>
     </div>
-
+    <!-- МЕНЮ -->
+    <div id="menu-screen" class="screen">
+        <h1 id="welcome-text">ПРИВЕТ</h1>
+        <div style="font-size:0.9rem; margin-bottom:10px; color:#7fcf93;">Баланс: <span id="menu-money">€100</span></div>
+        <button onclick="startGame('campaign')">Обычный режим</button>
+        <button onclick="startGame('zen')">Режим Дзен</button>
+        <button onclick="showShop()">Магазин плюшек</button>
+        <button onclick="showLeaderboard()">Рекорды</button>
+        <button onclick="showScreen('settings-screen')">Настройки</button>
+    </div>
+    <!-- МАГАЗИН -->
+    <div id="shop-screen" class="screen">
+        <h1>МАГАЗИН ПЛЮШЕК</h1>
+        <div style="font-size:0.9rem; margin-bottom:10px; color:#7fcf93;">Ваш кошелек: <span id="shop-money">€100</span></div>
+        <div class="list-box" style="max-height:260px;">
+            <div class="list-item"><span>🔨 Молот (€40)</span><button style="width:70px; padding:4px; margin:0;" onclick="buyItem('hammer', 40)">Купить</button></div>
+            <div class="list-item"><span>💣 Бомба (€80)</span><button style="width:70px; padding:4px; margin:0;" onclick="buyItem('bomb', 80)">Купить</button></div>
+            <div class="list-item"><span>⚡ Крест (€120)</span><button style="width:70px; padding:4px; margin:0;" onclick="buyItem('cross', 120)">Купить</button></div>
+            <div class="list-item"><span>🎨 Сброс (€150)</span><button style="width:70px; padding:4px; margin:0;" onclick="buyItem('color', 150)">Купить</button></div>
+        </div>
+        <button onclick="exitShop()">Назад в меню</button>
+    </div>
+    <!-- НАСТРОЙКИ -->
+    <div id="settings-screen" class="screen">
+        <h1>НАСТРОЙКИ</h1>
+        <div class="toggle-container"><span>Показывать FPS</span><input type="checkbox" id="fps-toggle" onchange="toggleFPS()" style="width:30px; margin:0;"></div>
+        <div class="toggle-container"><span style="color:#ff5ce6; font-weight:bold;">🤪 Режим наркомана</span><input type="checkbox" id="acid-toggle" onchange="toggleAcid()" style="width:30px; margin:0;"></div>
+        <button onclick="showScreen('menu-screen')">Назад</button>
+    </div>
+    <!-- РЕКОРДЫ -->
+    <div id="leaderboard-screen" class="screen">
+        <h1>ТОП РЕКОРДОВ</h1>
+        <div class="list-box" id="leader-list"></div>
+        <button onclick="showScreen('menu-screen')">Назад</button>
+    </div>
     <!-- ИГРА -->
     <div id="game-screen" class="screen" style="padding:0;">
         <div class="hud">
-            <div>Ур.<span id="hud-level" style="color:var(--neon-blue);">1</span></div>
-            <div>Очки<span id="hud-score">0</span></div>
-            <div>Баланс<span id="hud-money" style="color:#00ff66;">€0</span></div>
-            <div>Цель:<span id="hud-target" style="font-size:0.75rem;margin-top:2px;">0/20</span></div>
+            <div>Уровень<span id="hud-mode" style="color:var(--accent);">-</span></div>
+            <div>Очки/Ходы<span id="hud-score">0 / 0</span></div>
+            <div>Баланс<span id="hud-money" style="color:#7fcf93;">€0</span></div>
+            <div>Цель<span id="hud-target">-</span></div>
         </div>
-        <div id="canvas-container">
-            <canvas id="gameCanvas"></canvas>
+        <div id="canvas-container"><canvas id="gameCanvas" width="320" height="320"></canvas></div>
+        <div class="inv-grid">
+            <button id="btn-inv-hammer" class="inv-btn" onclick="selectTool('hammer')">🔨 Молот<span class="badge" id="count-hammer">0</span></button>
+            <button id="btn-inv-bomb" class="inv-btn" onclick="selectTool('bomb')">💣 Бомба<span class="badge" id="count-bomb">0</span></button>
+            <button id="btn-inv-cross" class="inv-btn" onclick="selectTool('cross')">⚡ Крест<span class="badge" id="count-cross">0</span></button>
+            <button id="btn-inv-color" class="inv-btn" onclick="selectTool('color')">🎨 Сброс<span class="badge" id="count-color">0</span></button>
         </div>
-        <div class="shop-bar">
-            <button id="btn-hammer" class="shop-btn" onclick="buyItem('hammer')">🔨 Молот (€150)</button>
-            <button id="btn-bomb" class="shop-btn" onclick="buyItem('bomb')">💣 Бомба (€300)</button>
-        </div>
-        <button onclick="quitGame()" style="width:40%; margin: 10px auto; padding: 6px; font-size:0.9rem;">Выход</button>
-    </div>
-
-    <!-- ЛИДЕРЫ -->
-    <div id="leaderboard-screen" class="screen">
-        <h1>Макс. Уровень</h1>
-        <div class="list-container" id="leaderboard-list"></div>
-        <button onclick="showScreen('menu-screen')">Назад</button>
+        <button onclick="quitGame()" style="width:40%; padding: 5px; font-size:0.75rem; margin: 3px auto;">Выход в меню</button>
     </div>
 </div>
-
 <script>
-    const CONFIG = {
-        rows: 8, cols: 8, size: 0,
-        colors: [ '#00f0ff', '#bd00ff', '#00ff66', '#ff9900', '#ff0055' ],
-        colorNames: [ 'Синих', 'Пурпур', 'Зеленых', 'Желтых', 'Красных' ]
-    };
+    const CONFIG = { rows: 8, cols: 8, colors: [ '#4facfe', '#43e97b', '#b180f0', '#fa709a', '#ffee75' ], colorNames: [ 'Синих', 'Зеленых', 'Лиловых', 'Розовых', 'Желтых' ] };
+    let state = { grid: [], score: 0, money: 100, level: 1, targetColor: 0, collected: 0, required: 15, moves: 25, dragStart: null, isAnimating: false, particles: [], shockwaves: [], active: false, mode: 'campaign', activeItem: null, user: 'Игрок', showFps: false, winAnimTimer: 0, textAlpha: 0, overlayAlpha: 0, inventory: { hammer: 2, bomb: 1, cross: 0, color: 0 }, acidMode: false, globalTime: 0, combo: 1, comboTexts: [] };
+    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    let lastTime = performance.now(), frameCount = 0, fps = 0;
 
-    let state = {
-        grid: [], score: 0, money: 0, level: 1, targetColor: 0, collected: 0, required: 20,
-        dragStart: null, isAnimating: false, particles: [], active: false, swapAnim: null, activeItem: null
-    };
+    function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function register() { const name = document.getElementById('username').value.trim(); state.user = name || 'Игрок'; document.getElementById('welcome-text').innerText = `ПРИВЕТ, ${state.user.toUpperCase()}!`; updateMenuStats(); showScreen('menu-screen'); }
+    function updateMenuStats() { if(document.getElementById('menu-money')) document.getElementById('menu-money').innerText = `€${state.money}`; if(document.getElementById('shop-money')) document.getElementById('shop-money').innerText = `€${state.money}`; }
+    function showShop() { updateMenuStats(); showScreen('shop-screen'); }
+    function exitShop() { showScreen('menu-screen'); }
+    function toggleFPS() { state.showFps = document.getElementById('fps-toggle').checked; document.getElementById('fps-counter').style.display = state.showFps ? 'block' : 'none'; }
+    function toggleAcid() { state.acidMode = document.getElementById('acid-toggle').checked; }
+    function buyItem(type, price) { if(state.money >= price) { state.money -= price; state.inventory[type]++; updateMenuStats(); } else { alert('Недостаточно евро!'); } }
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let leaders = JSON.parse(localStorage.getItem('nc_leaders')) || [{level:1, score:500}];
-
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(id === 'leaderboard-screen') {
-            const list = document.getElementById('leaderboard-list');
-            list.innerHTML = '';
-            [...leaders].sort((a,b) => b.level - a.level).forEach((l, idx) => {
-                list.innerHTML += `<div class="list-item"><span>${idx+1}. Уровень ${l.level}</span><span style="color:var(--neon-blue);">${l.score} Очков</span></div>`;
-            });
-        }
+    function showLeaderboard() {
+        const list = document.getElementById('leader-list'); list.innerHTML = '';
+        const records = JSON.parse(localStorage.getItem('neon_records')) || [];
+        if(records.length === 0) list.innerHTML = '<div class="list-item" style="justify-content:center;">Нет рекордов</div>';
+        records.forEach((r, i) => { list.innerHTML += `<div class="list-item"><span>${i+1}. ${r.name}</span><span style="color:var(--accent);">${r.score} Очков (Ур.${r.lvl})</span></div>`; });
+        showScreen('leaderboard-screen');
     }
 
-    function drawCrystal(ctx, x, y, s, color, scale=1) {
-        ctx.save();
-        ctx.shadowColor = color; ctx.shadowBlur = 10;
-        ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-        ctx.translate(x + s/2, y + s/2); ctx.scale(scale, scale);
+    function saveRecord() {
+        let records = JSON.parse(localStorage.getItem('neon_records')) || [];
+        records.push({ name: state.user, score: state.score, lvl: state.level });
+        records.sort((a, b) => b.score - a.score);
+        localStorage.setItem('neon_records', JSON.stringify(records.slice(0, 5)));
+    }
+
+    function drawCrystal(ctx, x, y, color, alpha=1, isLightning=false) {
+        ctx.save(); ctx.translate(x + 20, y + 20); ctx.globalAlpha = alpha;
+        if (state.acidMode) { ctx.rotate(state.globalTime * 0.05 + (x + y) * 0.01); let scale = 1 + Math.sin(state.globalTime * 0.1 + x) * 0.15; ctx.scale(scale, scale); }
+        const r = 8, w = 34, h = 34;
+        ctx.fillStyle = color; ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(-w/2 + r, -h/2); ctx.arcTo(w/2, -h/2, w/2, h/2, r); ctx.arcTo(w/2, h/2, -w/2, h/2, r); ctx.arcTo(-w/2, h/2, -w/2, -h/2, r); ctx.arcTo(-w/2, -h/2, w/2, -h/2, r); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.ellipse(-5, -5, 5, 2.5, Math.PI/4, 0, Math.PI*2); ctx.fill();
         
-        const r = (s - 14) / 2;
-        ctx.fillStyle = color + '20';
-        ctx.beginPath();
-        // Отрисовка многогранного алмаза со скругленными ребрами
-        ctx.moveTo(0, -r);
-        ctx.lineTo(r * 0.7, -r * 0.4); ctx.lineTo(r, 0); ctx.lineTo(r * 0.7, r * 0.4);
-        ctx.lineTo(0, r);
-        ctx.lineTo(-r * 0.7, r * 0.4); ctx.lineTo(-r, 0); ctx.lineTo(-r * 0.7, -r * 0.4);
-        ctx.closePath(); ctx.fill(); ctx.stroke();
-        
-        // Внутренние грани кристалла для эффекта блеска
-        ctx.strokeStyle = color + '66'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(0, r); ctx.moveTo(-r, 0); ctx.lineTo(r, 0); ctx.stroke();
+        if (isLightning) {
+            ctx.save(); let wave = 1.1 + Math.sin(state.globalTime * 0.2) * 0.15; ctx.scale(wave, wave);
+            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.shadowColor = color; ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.moveTo(-3, -12); ctx.lineTo(5, -2); ctx.lineTo(0, 0); ctx.lineTo(4, 12); ctx.lineTo(-5, 2); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.restore();
+        }
         ctx.restore();
     }
 
-    function startGame() {
-        state.score = 0; state.money = 0; state.level = 1; state.activeItem = null;
-        initLevelData();
-        state.grid = []; state.particles = []; state.dragStart = null;
-        state.isAnimating = false; state.swapAnim = null; state.active = true;
-        updateHUD();
-        showScreen('game-screen');
-        setTimeout(() => { resizeCanvas(); initGrid(); requestAnimationFrame(gameLoop); }, 60);
+    function startGame(mode) {
+        state.mode = mode; state.score = 0; state.level = 1; state.activeItem = null; state.winAnimTimer = 0; state.combo = 1; state.comboTexts = [];
+        initLevelData(); initGrid(); state.particles = []; state.shockwaves = []; state.dragStart = null; state.isAnimating = false; state.active = true;
+        updateHUD(); showScreen('game-screen');
     }
 
-    function initLevelData() {
-        state.targetColor = Math.floor(Math.random() * CONFIG.colors.length);
-        state.collected = 0;
-        state.required = 15 + state.level * 5; // С каждым уровнем цель увеличивается на 5 кристаллов
-    }
-
+    function initLevelData() { state.targetColor = Math.floor(Math.random() * CONFIG.colors.length); state.collected = 0; state.required = 10 + state.level * 5; state.moves = Math.max(15, 35 - state.level * 2); }
+    
     function updateHUD() {
-        document.getElementById('hud-level').innerText = state.level;
-        document.getElementById('hud-score').innerText = state.score;
+        document.getElementById('hud-mode').innerText = state.mode === 'zen' ? 'Дзен' : `Ур. ${state.level}`;
+        document.getElementById('hud-score').innerText = state.mode === 'zen' ? state.score : `${state.score} / ⏳${state.moves}`;
         document.getElementById('hud-money').innerText = `€${state.money}`;
-        document.getElementById('hud-target').innerText = `${state.collected}/${state.required}\n${CONFIG.colorNames[state.targetColor]}`;
-        document.getElementById('btn-hammer').classList.toggle('selected', state.activeItem === 'hammer');
-        document.getElementById('btn-bomb').classList.toggle('selected', state.activeItem === 'bomb');
+        document.getElementById('hud-target').innerText = state.mode === 'zen' ? '∞' : `${state.collected}/${state.required} ${CONFIG.colorNames[state.targetColor]}`;
+        ['hammer','bomb','cross','color'].forEach(t => { document.getElementById(`count-${t}`).innerText = state.inventory[t]; document.getElementById(`btn-inv-${t}`).classList.toggle('active-item', state.activeItem === t); });
     }
 
-    function buyItem(type) {
-        if(state.isAnimating) return;
-        if(state.activeItem === type) { state.activeItem = null; updateHUD(); return; }
-        const price = type === 'hammer' ? 150 : 300;
-        if(state.money >= price) { state.activeItem = type; } else { alert('Недостаточно €!'); }
-        updateHUD();
-    }
-
-    function quitGame() {
-        state.active = false;
-        if(state.score > 0) {
-            leaders.push({ level: state.level, score: state.score });
-            localStorage.setItem('nc_leaders', JSON.stringify(leaders.slice(0, 15)));
-        }
-        showScreen('menu-screen');
-    }
-
-    function resizeCanvas() {
-        const container = document.getElementById('canvas-container');
-        const size = Math.min(container.clientWidth, container.clientHeight, 400);
-        canvas.width = size; canvas.height = size;
-        CONFIG.size = size / CONFIG.cols;
-    }
+    function selectTool(type) { if(state.isAnimating || state.winAnimTimer > 0) return; if(state.activeItem === type) { state.activeItem = null; updateHUD(); return; } if(state.inventory[type] > 0) { state.activeItem = type; } else { alert('Купите в магазине меню!'); } updateHUD(); }
 
     function initGrid() {
+        for(let r=0; r<CONFIG.rows; r++) { state.grid[r] = []; for(let c=0; c<CONFIG.cols; c++) { do { state.grid[r][c] = { colorId: Math.floor(Math.random() * CONFIG.colors.length), x: c*40, y: r*40, alpha: 1, isDestroying: false, isLightning: false }; } while (hasMatchAt(r, c)); } }
+    }
+
+    function hasMatchAt(r, c) {
+        const id = state.grid[r][c].colorId;
+        if(c >= 2 && state.grid[r][c-1]?.colorId === id && state.grid[r][c-2]?.colorId === id) return true;
+        if(r >= 2 && state.grid[r-1]?.[c]?.colorId === id && state.grid[r-2]?.[c]?.colorId === id) return true;
+        return false;
+    }
+
+    function getGridCoords(clientX, clientY) { const rect = canvas.getBoundingClientRect(); return { c: Math.floor((clientX - rect.left) / 40), r: Math.floor((clientY - rect.top) / 40) }; }
+
+    function handleInputStart(clientX, clientY) { if(!state.active || state.isAnimating || state.winAnimTimer > 0) return; const coords = getGridCoords(clientX, clientY); if(coords.r >= 0 && coords.r < CONFIG.rows && coords.c >= 0 && coords.c < CONFIG.cols) { if(state.activeItem) { useTool(coords.r, coords.c); } else { state.dragStart = coords; } } }
+    function handleInputMove(clientX, clientY) {
+        if(!state.dragStart || state.isAnimating || state.winAnimTimer > 0) return; const coords = getGridCoords(clientX, clientY); if(coords.r < 0 || coords.r >= CONFIG.rows || coords.c < 0 || coords.c >= CONFIG.cols) return;
+        const dr = coords.r - state.dragStart.r, dc = coords.c - state.dragStart.c;
+        if(Math.abs(dr) + Math.abs(dc) === 1) { if(state.mode === 'campaign') state.moves--; state.combo = 1; executeSwap(state.dragStart.r, state.dragStart.c, coords.r, coords.c); state.dragStart = null; }
+    }
+
+    function useTool(r, c) {
+        state.isAnimating = true; const m = []; state.inventory[state.activeItem]--; state.combo = 1;
+        if(state.activeItem === 'hammer') { m.push({r, c}); } 
+        else if(state.activeItem === 'bomb') { for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(state.grid[r+i]?.[c+j]) m.push({r:r+i, c:c+j}); } 
+        else if(state.activeItem === 'cross') { for(let i=0; i<8; i++) { if(state.grid[r][i]) m.push({r, c:i}); if(state.grid[i][c]) m.push({r:i, c}); } } 
+        else if(state.activeItem === 'color') { const tid = state.grid[r][c]?.colorId; for(let i=0; i<8; i++) for(let j=0; j<8; j++) if(state.grid[i][j]?.colorId === tid) m.push({r:i, c:j}); }
+        state.activeItem = null; processMatches(m);
+    }
+
+    function executeSwap(r1, c1, r2, c2) {
+        state.isAnimating = true; const temp = state.grid[r1][c1]; state.grid[r1][c1] = state.grid[r2][c2]; state.grid[r2][c2] = temp;
+        state.grid[r1][c1].x = c2*40; state.grid[r1][c1].y = r2*40; state.grid[r2][c2].x = c1*40; state.grid[r2][c2].y = r1*40;
+        setTimeout(() => { if(!checkMatches()) { const t = state.grid[r1][c1]; state.grid[r1][c1] = state.grid[r2][c2]; state.grid[r2][c2] = t; state.grid[r1][c1].x = c1*40; state.grid[r1][c1].y = r1*40; state.grid[r2][c2].x = c2*40; state.grid[r2][c2].y = r2*40; state.isAnimating = false; } }, 150);
+    }
+
+    function checkMatches() {
+        const m = []; const matchGrid = Array(CONFIG.rows).fill().map(() => Array(CONFIG.cols).fill(false)); const specialSpawn = [];
         for(let r=0; r<CONFIG.rows; r++) {
-            state.grid[r] = [];
+            let matchLen = 1;
             for(let c=0; c<CONFIG.cols; c++) {
-                let id;
-                do { id = Math.floor(Math.random() * CONFIG.colors.length); } while (wouldCreateMatch(r, c, id));
-                state.grid[r][c] = { id: id, animY: 0, isDropping: false };
+                let checkNext = (c < CONFIG.cols - 1) && state.grid[r][c]?.colorId === state.grid[r][c+1]?.colorId && !state.grid[r][c]?.isDestroying && !state.grid[r][c+1]?.isDestroying;
+                if(checkNext) { matchLen++; } else { if(matchLen >= 3) { for(let i=c-matchLen+1; i<=c; i++) matchGrid[r][i] = true; if(matchLen >= 4) specialSpawn.push({r, c: c - Math.floor(matchLen/2), colorId: state.grid[r][c].colorId}); } matchLen = 1; }
             }
         }
-    }
-
-    function wouldCreateMatch(r, c, id) {
-        if (c >= 2 && state.grid[r][c-1]?.id === id && state.grid[r][c-2]?.id === id) return true;
-        if (r >= 2 && state.grid[r-1]?.[c]?.id === id && state.grid[r-2]?.[c]?.id === id) return true;
+        for(let c=0; c<CONFIG.cols; c++) {
+            let matchLen = 1;
+            for(let r=0; r<CONFIG.rows; r++) {
+                let checkNext = (r < CONFIG.rows - 1) && state.grid[r][c]?.colorId === state.grid[r+1][c]?.colorId && !state.grid[r][c]?.isDestroying && !state.grid[r+1][c]?.isDestroying;
+                if(checkNext) { matchLen++; } else { if(matchLen >= 3) { for(let i=r-matchLen+1; i<=r; i++) matchGrid[i][c] = true; if(matchLen >= 4) specialSpawn.push({r: r - Math.floor(matchLen/2), c, colorId: state.grid[r][c].colorId}); } matchLen = 1; }
+            }
+        }
+        for(let r=0; r<CONFIG.rows; r++) for(let c=0; c<CONFIG.cols; c++) {
+            if(matchGrid[r][c]) { m.push({r, c}); if (state.grid[r][c]?.isLightning) { for(let i=0; i<8; i++) { if(!matchGrid[r][i]) m.push({r, c: i}); if(!matchGrid[i][c]) m.push({r: i, c}); } } }
+        }
+        if(m.length > 0) { processMatches(m, specialSpawn); return true; }
         return false;
     }
 
-    function spawnExplosion(x, y, color) {
-        for (let i = 0; i < 8; i++) {
-            const angle = Math.random() * Math.PI * 2, speed = 1 + Math.random() * 3;
-            state.particles.push({ x: x + CONFIG.size/2, y: y + CONFIG.size/2, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, alpha: 1, color: color });
-        }
+    function processMatches(matches, specialSpawn=[]) {
+        state.isAnimating = true; matches.forEach(({r, c}) => { if(state.grid[r][c]) state.grid[r][c].isDestroying = true; });
+        if (state.combo > 1 && matches.length > 0) { let mid = matches[Math.floor(matches.length / 2)]; state.comboTexts.push({ x: mid.c * 40 + 20, y: mid.r * 40, text: `Combo x${state.combo}`, alpha: 1 }); }
+        setTimeout(() => {
+            matches.forEach(({r, c}) => {
+                const cry = state.grid[r][c]; if(!cry) return;
+                state.shockwaves.push({ x: c*40+20, y: r*40+20, rad: 5, maxRad: 25, alpha: 1, color: CONFIG.colors[cry.colorId] });
+                for(let i=0; i<12; i++) state.particles.push({ x: c*40+20, y: r*40+20, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, alpha: 1, size: Math.random()*3+2, color: CONFIG.colors[cry.colorId] });
+                state.score += 10 * state.combo; if (state.globalTime % 2 === 0) state.money += 1; if(state.mode === 'campaign' && cry.colorId === state.targetColor) state.collected++; state.grid[r][c] = null;
+            });
+            specialSpawn.forEach(s => { state.grid[s.r][s.c] = { colorId: s.colorId, x: s.c*40, y: s.r*40, alpha: 1, isDestroying: false, isLightning: true }; });
+            updateHUD(); if(state.mode === 'campaign' && state.collected >= state.required) { triggerWinAnimation(); } else { dropCrystals(); }
+        }, 200);
     }
 
-    function processMatches() {
-        let matchGrid = Array.from({length: CONFIG.rows}, () => Array(CONFIG.cols).fill(false));
-        let found = false;
+    function triggerWinAnimation() { state.winAnimTimer = 180; state.isAnimating = false; state.textAlpha = 0; state.overlayAlpha = 0; }
 
-        for (let r = 0; r < CONFIG.rows; r++) {
-            for (let c = 0; c < CONFIG.cols - 2; c++) {
-                let id = state.grid[r][c]?.id;
-                if (id !== null && id === state.grid[r][c+1]?.id && id === state.grid[r][c+2]?.id) { matchGrid[r][c] = matchGrid[r][c+1] = matchGrid[r][c+2] = true; found = true; }
-            }
+    function dropCrystals() {
+        for(let c=0; c<CONFIG.cols; c++) {
+            let emptySpaces = 0;
+            for(let r=CONFIG.rows-1; r>=0; r--) { if(!state.grid[r][c]) { emptySpaces++; } else if(emptySpaces > 0) { state.grid[r+emptySpaces][c] = state.grid[r][c]; state.grid[r][c] = null; } }
+            for(let i=0; i<emptySpaces; i++) state.grid[emptySpaces-1-i][c] = { colorId: Math.floor(Math.random() * CONFIG.colors.length), x: c*40, y: -40 * (i+1), alpha: 1, isDestroying: false, isLightning: false };
         }
-        for (let r = 0; r < CONFIG.rows - 2; r++) {
-            for (let c = 0; c < CONFIG.cols; c++) {
-                let id = state.grid[r][c]?.id;
-                if (id !== null && id === state.grid[r+1][c]?.id && id === state.grid[r+2][c]?.id) { matchGrid[r][c] = matchGrid[r+1][c] = matchGrid[r+2][c] = true; found = true; }
-            }
-        }
-
-        if (found) {
-            let count = 0;
-            for (let r = 0; r < CONFIG.rows; r++) {
-                for (let c = 0; c < CONFIG.cols; c++) {
-                    if (matchGrid[r][c] && state.grid[r][c].id !== null) {
-                        if(state.grid[r][c].id === state.targetColor) state.collected++;
-                        spawnExplosion(c * CONFIG.size, r * CONFIG.size, CONFIG.colors[state.grid[r][c].id]);
-                        state.grid[r][c].id = null; count++;
-                    }
-                }
-            }
-            state.score += count * 10;
-            state.money += count * 5; // Зарабатываем евро за разрушения
-            updateHUD();
-            checkWinCondition();
-        } else { state.isAnimating = false; }
+        setTimeout(() => { if(state.mode === 'campaign' && state.moves <= 0) { alert("Ходы закончились!"); quitGame(); } else { if (checkMatches()) { state.combo++; } else { state.isAnimating = false; state.combo = 1; } } }, 250);
     }
 
-    function checkWinCondition() {
-        if(state.collected >= state.required) {
-            state.isAnimating = true;
-            setTimeout(() => {
-                alert(`Уровень ${state.level} Пройден! Переход на следующий уровень.`);
-                state.level++;
-                initLevelData();
-                initGrid();
-                state.isAnimating = false;
-                updateHUD();
-            }, 400);
-        } else { applyGravity(); }
+    function quitGame() { state.active = false; saveRecord(); showScreen('menu-screen'); }
+
+    function updateAnims() {
+        state.globalTime++;
+        if (state.winAnimTimer > 0) {
+            state.winAnimTimer--; if (state.winAnimTimer > 150) { state.textAlpha += 0.033; state.overlayAlpha += 0.023; }
+            if (state.winAnimTimer < 30) { state.textAlpha -= 0.033; state.overlayAlpha -= 0.023; for(let r=0; r<CONFIG.rows; r++) for(let c=0; c<CONFIG.cols; c++) if(state.grid[r][c]) state.grid[r][c].alpha = state.winAnimTimer / 30; }
+            if (state.winAnimTimer % 15 === 0 && state.winAnimTimer > 20) { const color = CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)]; for(let i=0; i<20; i++) state.particles.push({ x: 160, y: 160, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, alpha: 1, size: Math.random()*4+2, color: color }); }
+            if (state.winAnimTimer === 0) { state.level++; initLevelData(); initGrid(); updateHUD(); }
+        }
+        for(let r=0; r<CONFIG.rows; r++) { for(let c=0; c<CONFIG.cols; c++) { const cry = state.grid[r][c]; if(!cry) continue; const tx = c * 40, ty = r * 40; if(cry.x !== tx) cry.x += Math.sign(tx - cry.x) * Math.min(6, Math.abs(tx - cry.x)); if(cry.y !== ty) cry.y += Math.sign(ty - cry.y) * Math.min(6, Math.abs(ty - cry.y)); if(cry.isDestroying && cry.alpha > 0) cry.alpha -= 0.15; } }
+        for(let i=state.particles.length-1; i>=0; i--) { const p = state.particles[i]; p.x += p.vx; p.y += p.vy; p.alpha -= 0.03; if(p.alpha <= 0) state.particles.splice(i, 1); }
+        for(let i=state.shockwaves.length-1; i>=0; i--) { const sw = state.shockwaves[i]; sw.rad += 2; sw.alpha -= 0.05; if(sw.alpha <= 0) state.shockwaves.splice(i, 1); }
+        for(let i=state.comboTexts.length-1; i>=0; i--) { const ct = state.comboTexts[i]; ct.y -= 0.6; ct.alpha -= 0.02; if(ct.alpha <= 0) state.comboTexts.splice(i, 1); }
     }
 
-    function applyGravity() {
-        state.isAnimating = true;
-        for (let c = 0; c < CONFIG.cols; c++) {
-            let emptyRows = 0;
-            for (let r = CONFIG.rows - 1; r >= 0; r--) {
-                if (state.grid[r][c].id === null) { emptyRows++; }
-                else if (emptyRows > 0) {
-                    state.grid[r + emptyRows][c].id = state.grid[r][c].id;
-                    state.grid[r + emptyRows][c].animY = -emptyRows * CONFIG.size;
-                    state.grid[r + emptyRows][c].isDropping = true;
-                    state.grid[r][c].id = null;
-                }
-            }
-            for (let k = 0; k < emptyRows; k++) {
-                state.grid[k][c].id = Math.floor(Math.random() * CONFIG.colors.length);
-                state.grid[k][c].animY = -emptyRows * CONFIG.size;
-                state.grid[k][c].isDropping = true;
-            }
+    function gameLoop() {
+        if(state.active) {
+            updateAnims(); if (state.acidMode) { ctx.fillStyle = `hsl(${(state.globalTime * 2) % 360}, 25%, 8%)`; ctx.fillRect(0, 0, canvas.width, canvas.height); } else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+            for(let r=0; r<CONFIG.rows; r++) for(let c=0; c<CONFIG.cols; c++) { const cry = state.grid[r][c]; if(cry) drawCrystal(ctx, cry.x, cry.y, CONFIG.colors[cry.colorId], cry.alpha, cry.isLightning); }
+            ctx.save(); for(let i=0; i<state.shockwaves.length; i++) { const sw = state.shockwaves[i]; ctx.globalAlpha = sw.alpha; ctx.strokeStyle = sw.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sw.x, sw.y, sw.rad, 0, Math.PI*2); ctx.stroke(); }
+            for(let i=0; i<state.particles.length; i++) { const p = state.particles[i]; ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); }
+            ctx.textAlign = 'center'; ctx.font = 'bold 13px sans-serif'; for(let i=0; i<state.comboTexts.length; i++) { const ct = state.comboTexts[i]; ctx.globalAlpha = ct.alpha; ctx.fillStyle = '#ffcc00'; ctx.fillText(ct.text, ct.x, ct.y); } ctx.restore();
+            if (state.winAnimTimer > 0) { ctx.save(); ctx.fillStyle = `rgba(22, 23, 30, ${Math.max(0, Math.min(0.75, state.overlayAlpha))})`; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.globalAlpha = Math.max(0, Math.min(1, state.textAlpha)); ctx.fillStyle = '#5c8ae6'; ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('LEVEL UP!', 160, 150); ctx.font = '14px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('Готовим новый уровень...', 160, 185); ctx.restore(); }
         }
+        if(state.showFps) { frameCount++; let now = performance.now(); if (now - lastTime >= 1000) { fps = frameCount; frameCount = 0; lastTime = now; document.getElementById('fps-counter').innerText = `FPS: ${fps}`; } }
+        requestAnimationFrame(gameLoop);
     }
 
-    function handleUseItem(r, c) {
-        if(state.activeItem === 'hammer') {
-            state.money -= 150;
-            if(state.grid[r][c].id === state.targetColor) state.collected++;
-            spawnExplosion(c * CONFIG.size, r * CONFIG.size, CONFIG.colors[state.grid[r][c].id]);
-            state.grid[r][c].id = null;
-        } else if(state.activeItem === 'bomb') {
-            state.money -= 300;
-            for(let i = -1; i <= 1; i++) {
-                for(let j = -1; j <= 1; j++) {
-                    let nr = r + i, nc = c + j;
-                    if(nr >= 0 && nr < CONFIG.rows && nc >= 0 && nc < CONFIG.cols && state.grid[nr][nc].id !== null) {
-                        if(state.grid[nr][nc].id === state.targetColor) state.collected++;
-                        spawnExplosion(nc * CONFIG.size, nr * CONFIG.size, CONFIG.colors[state.grid[nr][nc].id]);
-                        state.grid[nr][nc].id = null;
-                    }
-                }
-            }
-        }
-        state.activeItem = null;
-        updateHUD();
-        checkWinCondition();
-    }
-
-    function pointerDown(clientX, clientY) {
-        if (state.isAnimating || !state.active) return;
-        const rect = canvas.getBoundingClientRect();
-        const c = Math.floor((clientX - rect.left) / CONFIG.size);
-        const r = Math.floor((clientY - rect.top) / CONFIG.size);
-        if (r < 0 || r >= CONFIG.rows || c < 0 || c >= CONFIG.cols) return;
-
-        if(state.activeItem) { handleUseItem(r, c); return; }
-        state.dragStart = { r, c, x: clientX, y: clientY };
-    }
-
-    function pointerMove(clientX, clientY) {
-        if (!state.dragStart || state.isAnimating) return;
-        const dx = clientX - state.dragStart.x, dy = clientY - state.dragStart.y, minDist = CONFIG.size * 0.4;
-
-        if (Math.abs(dx) > minDist || Math.abs(dy) > minDist) {
-            let targetR = state.dragStart.r, targetC = state.dragStart.c;
-            if (Math.abs(dx) > Math.abs(dy)) { targetC += dx > 0 ? 1 : -1; } else { targetR += dy > 0 ? 1 : -1; }
-
-            if (targetR >= 0 && targetR < CONFIG.rows && targetC >= 0 && targetC < CONFIG.cols) {
-                state.isAnimating = true;
-                state.swapAnim = { r1: state.dragStart.r, c1: state.dragStart.c, r2: targetR, c2: targetC, t: 0, direction: 1 };
-            }
-            state.dragStart = null;
-        }
-    }
-
-    function pointerUp() { state.dragStart = null; }
-    function easeInOutQuad(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
-
-    function update() {
-        for (let i = state.particles.length - 1; i >= 0; i--) {
-            let p = state.particles[i]; p.x += p.vx; p.y += p.vy; p.alpha -= 0.04;
-            if (p.alpha <= 0) state.particles.splice(i, 1);
-        }
-
-        if (state.swapAnim) {
-            let sa = state.swapAnim; sa.t += 0.08 * sa.direction;
-            if (sa.t >= 1) {
-                sa.t = 1;
-                let temp = state.grid[sa.r1][sa.c1].id; state.grid[sa.r1][sa.c1].id = state.grid[sa.r2][sa.c2].id; state.grid[sa.r2][sa.c2].id = temp;
-                if (hasAnyMatches()) { state.swapAnim = null; processMatches(); } else { sa.direction = -1; }
-            } else if (sa.t <= 0) {
-                let temp = state.grid[sa.r1][sa.c1].id; state.grid[sa.r1][sa.c1].id = state.grid[sa.r2][sa.c2].id; state.grid[sa.r2][sa.c2].id = temp;
-                state.swapAnim = null; state.isAnimating = false;
-            }
-            return;
-        }
-
-        let dropping = false;
-        for (let r = 0; r < CONFIG.rows; r++) {
-            for (let c = 0; c < CONFIG.cols; c++) {
-                let f = state.grid[r][c];
-                if (f?.isDropping) { f.animY += 8; if (f.animY >= 0) { f.animY = 0; f.isDropping = false; } else { dropping = true; } }
-            }
-        }
-        if (state.isAnimating && !dropping) processMatches();
-    }
-
-    function hasAnyMatches() {
-        for (let r = 0; r < CONFIG.rows; r++) {
-            for (let c = 0; c < CONFIG.cols; c++) {
-                let id = state.grid[r][c].id; if (id === null) continue;
-                if (c < CONFIG.cols - 2 && id === state.grid[r][c+1]?.id && id === state.grid[r][c+2]?.id) return true;
-                if (r < CONFIG.rows - 2 && id === state.grid[r+1][c]?.id && id === state.grid[r+2][c]?.id) return true;
-            }
-        }
-        return false;
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)'; ctx.lineWidth = 1;
-        for (let i = 0; i <= CONFIG.cols; i++) {
-            ctx.beginPath(); ctx.moveTo(i * CONFIG.size, 0); ctx.lineTo(i * CONFIG.size, canvas.height); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0, i * CONFIG.size); ctx.lineTo(canvas.width, i * CONFIG.size); ctx.stroke();
-        }
-
-        for (let r = 0; r < CONFIG.rows; r++) {
-            for (let c = 0; c < CONFIG.cols; c++) {
-                let gem = state.grid[r][c]; if (!gem || gem.id === null) continue;
-                let drawX = c * CONFIG.size, drawY = r * CONFIG.size, currentScale = 1;
-                if (gem.isDropping) drawY += gem.animY;
-
-                if (state.swapAnim) {
-                    let sa = state.swapAnim, ep = easeInOutQuad(sa.t);
-                    let oX = (sa.c2 - sa.c1) * CONFIG.size * ep, oY = (sa.r2 - sa.r1) * CONFIG.size * ep;
-                    if (r === sa.r1 && c === sa.c1) { drawX += oX; drawY += oY; currentScale = 1 + Math.sin(sa.t * Math.PI) * 0.12; } 
-                    else if (r === sa.r2 && c === sa.c2) { drawX -= oX; drawY -= oY; currentScale = 1 - Math.sin(sa.t * Math.PI) * 0.08; }
-                }
-                if (drawY >= -CONFIG.size / 2) drawCrystal(ctx, drawX, drawY, CONFIG.size, CONFIG.colors[gem.id], currentScale);
-            }
-        }
-
-        state.particles.forEach(p => {
-            ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); ctx.restore();
-        });
-    }
-
-    function gameLoop() { if (!state.active) return; update(); draw(); requestAnimationFrame(gameLoop); }
-
-    canvas.addEventListener('mousedown', (e) => pointerDown(e.clientX, e.clientY));
-    window.addEventListener('mousemove', (e) => pointerMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', pointerUp);
-    canvas.addEventListener('touchstart', (e) => { if(e.touches.length > 0) pointerDown(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-    window.addEventListener('touchmove', (e) => { if(e.touches.length > 0) pointerMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
-    window.addEventListener('touchend', pointerUp);
-    window.addEventListener('resize', () => { if(state.active) resizeCanvas(); });
+    canvas.addEventListener('mousedown', e => handleInputStart(e.clientX, e.clientY)); canvas.addEventListener('mousemove', e => handleInputMove(e.clientX, e.clientY)); canvas.addEventListener('mouseup', () => state.dragStart = null);
+    canvas.addEventListener('touchstart', e => { const t = e.touches[0]; handleInputStart(t.clientX, t.clientY); }, {passive:true}); canvas.addEventListener('touchmove', e => { const t = e.touches[0]; handleInputMove(t.clientX, t.clientY); }, {passive:true}); canvas.addEventListener('touchend', () => state.dragStart = null);
+    requestAnimationFrame(gameLoop);
 </script>
-</body>
-</html>
-        </div>
-        
-        <!-- ИГРОВОЙ ЭКРАН -->
-        <div id="game" class="screen">
-            <div id="hud">
-                <div class="row">
-                    <div id="lvl-txt">Уровень: 1</div>
-                    <div>Счет: <span id="score-txt">0</span></div>
-                </div>
-                <div class="row" style="margin:4px 0 0; color:var(--neon);"><div id="target-txt"></div></div>
-                <div class="p-bar" id="progress-wrapper"><div id="p-fill" class="p-fill"></div></div>
-            </div>
-            <canvas id="canvas" width="320" height="320"></canvas>
-            <button class="btn" style="margin-top:12px; width:50%; padding:8px; font-size:13px;" onclick="backToMenu()">В меню</button>
-        </div>
-
-        <!-- ТАБЛИЦА РЕКОРДОВ -->
-        <div id="records-screen" class="screen">
-            <h1>ТАБЛИЦА РЕКОРДОВ</h1>
-            <div class="leaderboard" id="leaderboard-list"></div>
-            <button class="btn" onclick="showScreen('menu')">Назад</button>
-        </div>
-
-        <!-- ЗАПИСЬ РЕКОРДА -->
-        <div id="save-screen" class="screen">
-            <h1>ИГРА ОКОНЧЕНА</h1>
-            <p style="font-size:16px; margin: 0 0 10px;">Ваш счет: <span id="final-score" style="color:var(--neon); font-weight:bold;">0</span></p>
-            <div class="save-box">
-                <input type="text" id="player-name" placeholder="Ваше имя" maxlength="12">
-                <button class="btn" style="width:100%; margin: 6px 0 0;" onclick="saveScore()">Записать рекорд</button>
-            </div>
-            <button class="btn" style="background:#16213e; margin-top: 4px;" onclick="showScreen('menu')">Пропустить</button>
-        </div>
-    </div>
-
-    <script>
-        const cvs = document.getElementById('canvas'), ctx = cvs.getContext('2d'), W = 8, S = 40;
-        let board = [], score = 0, lvl = 1, tColor = 0, tAmt = 15, collected = 0, lock = false, drag = null, anims = [], loopActive = false;
-        let lastMove = null, isInfiniteMode = false;
-        const colors = ['#ff4757', '#00ff88', '#00f3ff', '#ffaa00', '#b537ff'], names = ["Рубины", "Изумруды", "Сапфиры", "Янтарь", "Аметисты"];
-
-        function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        
-        function startGame(col, isInfinite) {
-            tColor = col; isInfiniteMode = isInfinite; lvl = 1; tAmt = 15; score = 0; collected = 0; lock = false; board = []; anims = []; lastMove = null;
-            document.getElementById('progress-wrapper').style.display = isInfiniteMode ? 'none' : 'block';
-            for(let r=0; r<W; r++) {
-                board[r] = []; for(let c=0; c<W; c++) {
-                    let cl; do { cl = Math.floor(Math.random()*5); } while((c>=2 && board[r][c-1]==cl && board[r][c-2]==cl) || (r>=2 && board[r-1][c]==cl && board[r-2][c]==cl));
-                    board[r][c] = cl;
-                }
-            }
-            updateHUD(); showScreen('game'); if(!loopActive) { loopActive = true; drawLoop(); }
-        }
-        
-        function updateHUD() {
-            document.getElementById('score-txt').innerText = score;
-            document.getElementById('lvl-txt').innerText = isInfiniteMode ? "Режим: Дзен" : `Уровень: ${lvl}`;
-            document.getElementById('target-txt').innerText = isInfiniteMode ? "Собирайте любые комбинации!" : `Цель (${names[tColor]}): ${collected} / ${tAmt}`;
-            document.getElementById('p-fill').style.width = isInfiniteMode ? '0%' : `${Math.min((collected/tAmt)*100, 100)}%`;
-        }
-        
-        function backToMenu() { loopActive = false; document.getElementById('final-score').innerText = score; showScreen('save-screen'); }
-
-        function draw() {
-            ctx.clearRect(0,0,320,320);
-            for(let r=0; r<W; r++) {
-                for(let c=0; c<W; c++) {
-                    if(board[r][c] === null) continue;
-                    let drawX = c*S, drawY = r*S, scale = 1, alpha = 1;
-                    let a = anims.find(x => x.r === r && x.c === c);
-                    if(a) { drawX = a.x; drawY = a.y; scale = a.scale; alpha = a.alpha; }
-                    if(alpha <= 0) continue;
-                    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(drawX+S/2, drawY+S/2); ctx.scale(scale, scale);
-                    ctx.fillStyle = colors[board[r][c]]; ctx.shadowBlur = 8; ctx.shadowColor = colors[board[r][c]];
-                    ctx.beginPath(); ctx.moveTo(0, -S/2.4); ctx.lineTo(S/2.4, 0); ctx.lineTo(0, S/2.4); ctx.lineTo(-S/2.4, 0); ctx.closePath(); ctx.fill();
-                    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.moveTo(0, -S/2.4); ctx.lineTo(S/4.5, -S/4.5); ctx.lineTo(0, 0); ctx.lineTo(-S/4.5, -S/4.5); ctx.closePath(); ctx.fill();
-                    ctx.restore();
-                }
-            }
-        }
-        
-        function drawLoop() { if(!loopActive) return; updateAnims(); draw(); requestAnimationFrame(drawLoop); }
-
-        function updateAnims() {
-            let done = true, hasDestroy = false, hasMove = false;
-            anims.forEach(a => {
-                let tx = a.tc*S, ty = a.tr*S;
-                if(a.type === 'move') {
-                    hasMove = true;
-                    let dx = tx - a.x, dy = ty - a.y;
-                    if(Math.abs(dx)>0.5) { a.x += dx*0.3; done = false; } else a.x = tx;
-                    if(Math.abs(dy)>0.5) { a.y += dy*0.3; done = false; } else a.y = ty;
-                } else if(a.type === 'destroy') {
-                    hasDestroy = true;
-                    if(a.scale > 0.1) { a.scale -= 0.15; a.alpha -= 0.15; done = false; } else { a.scale = 0; a.alpha = 0; }
-                }
-            });
-            if(done && anims.length > 0) { 
-                anims = []; 
-                if(hasDestroy) dropGems(); 
-                else if(hasMove) { if(lastMove) checkAfterMove(); else { let m = findMatches(); if(m.length > 0) clearMatches(m); else lock = false; } }
-            }
-        }
-
-        function getXY(e) {
-            let rect = cvs.getBoundingClientRect(), scaleX = 320/rect.width, scaleY = 320/rect.height;
-            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { c: Math.floor((clientX - rect.left)*scaleX/S), r: Math.floor((clientY - rect.top)*scaleY/S), x: clientX, y: clientY };
-        }
-        cvs.addEventListener('mousedown', e => { if(!lock) drag = getXY(e); });
-        cvs.addEventListener('touchstart', e => { if(!lock) drag = getXY(e); }, {passive:true});
-        
-        function handleMove(clientX, clientY) {
-            if(!drag) return;
-            let dX = clientX - drag.x, dY = clientY - drag.y;
-            if(Math.abs(dX) > 20 || Math.abs(dY) > 20) {
-                let tr = drag.r, tc = drag.c;
-                if(Math.abs(dX) > Math.abs(dY)) tc += dX > 0 ? 1 : -1; else tr += dY > 0 ? 1 : -1;
-                if(tr>=0 && tr<W && tc>=0 && tc<W && (Math.abs(drag.r-tr)+Math.abs(drag.c-tc)===1)) {
-                    lock = true; lastMove = { r1: drag.r, c1: drag.c, r2: tr, c2: tc };
-                    anims.push({r:tr, c:tc, x:drag.c*S, y:drag.r*S, tr:tr, tc:tc, type:'move', scale:1, alpha:1});
-                    anims.push({r:drag.r, c:drag.c, x:tc*S, y:tr*S, tr:drag.r, tc:drag.c, type:'move', scale:1, alpha:1});
-                    swap(drag.r, drag.c, tr, tc);
-                }
-                drag = null;
-            }
-        }
-        window.addEventListener('mousemove', e => { if(drag) handleMove(e.clientX, e.clientY); });
-        window.addEventListener('touchmove', e => { if(drag && e.touches.length) handleMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
-        window.addEventListener('mouseup', () => drag = null); window.addEventListener('touchend', () => drag = null);
-
-        function swap(r1,c1,r2,c2) { let t=board[r1][c1]; board[r1][c1]=board[r2][c2]; board[r2][c2]=t; }
-        
-        function checkAfterMove() {
-            let m = findMatches();
-            if(m.length > 0) { lastMove = null; clearMatches(m); } 
-            else {
-                let lm = lastMove; lastMove = null; swap(lm.r1, lm.c1, lm.r2, lm.c2);
-                anims.push({r:lm.r2, c:lm.c2, x:lm.c1*S, y:lm.r1*S, tr:lm.r2, tc:lm.c2, type:'move', scale:1, alpha:1});
-                anims.push({r:lm.r1, c:lm.c1, x:lm.c2*S, y:lm.r2*S, tr:lm.r1, tc:lm.c1, type:'move', scale:1, alpha:1});
-            }
-        }
-
-        function findMatches() {
-            let m = Array.from({length:W}, () => Array(W).fill(false)), found = [];
-            for(let r=0; r<W; r++) for(let c=0; c<W-2; c++) { let cl=board[r][c]; if(cl!==null && cl==board[r][c+1] && cl==board[r][c+2]) m[r][c]=m[r][c+1]=m[r][c+2]=true; }
-            for(let c=0; c<W; c++) for(let r=0; r<W-2; r++) { let cl=board[r][c]; if(cl!==null && cl==board[r+1][c] && cl==board[r+2][c]) m[r][c]=m[r+1][c]=m[r+2][c]=true; }
-            for(let r=0; r<W; r++) for(let c=0; c<W; c++) if(m[r][c]) found.push({r, c});
-            return found;
-        }
-
-        function clearMatches(m) {
-            m.forEach(({r,c}) => {
-                if(board[r][c]!==null) { 
-                    if(board[r][c]===tColor || isInfiniteMode) collected++; score+=10; 
-                    anims.push({r,c,x:c*S,y:r*S,scale:1,alpha:1,type:'destroy'}); board[r][c] = null;
-                }
-            });
-            updateHUD();
-        }
-
-        function dropGems() {
-            for(let c=0; c<W; c++) {
-                let spaces = 0;
-                for(let r=W-1; r >= 0; r--) {
-                    if(board[r][c] === null) spaces++;
-                    else if(spaces > 0) {
-                        let tR = r + spaces; board[tR][c] = board[r][c]; board[r][c] = null;
-                        anims.push({r:tR, c:c, x:c*S, y:r*S, tr:tR, tc:c, type:'move', scale:1, alpha:1});
-                    }
-                }
-                for(let i=0; i<spaces; i++) {
-                    let tR = spaces-1-i, cl = Math.floor(Math.random()*5); board[tR][c] = cl;
-                    anims.push({r:tR, c:c, x:c*S, y:-(i+1)*S, tr:tR, tc:c, type:'move', scale:1, alpha:1});
-                }
-            }
-            if(anims.length === 0) { lock = false; checkLvl(); }
-        }
-
-        function checkLvl() {
-            if(!isInfiniteMode && collected >= tAmt) { lvl++; collected = 0; tAmt = Math.floor(tAmt*1.3)+5; }
-            updateHUD(); let m = findMatches(); if(m.length>0) clearMatches(m); else lock = false;
-        }
-
-        function showLeaderboardScreen() {
-            const list = document.getElementById('leaderboard-list'); list.innerHTML = '';
-            let records = JSON.parse(localStorage.getItem('neon_records')) || [];
-            if(records.length === 0) list.innerHTML = '<div style="text-align:center; padding:10px; opacity:0.5;">Нет рекордов</div>';
-            records.forEach((r, idx) => {
-                list.innerHTML += `<div class="leader-item"><span>${idx+1}. ${r.name}</span><span style="color:var(--neon); font-weight:bold;">${r.score}</span></div>`;
-            });
-            showScreen('records-screen');
-        }
-
-        function saveScore() {
-            let name = document.getElementById('player-name').value.trim() || "Аноним";
-            let records = JSON.parse(localStorage.getItem('neon_records')) || [];
-            records.push({ name: name, score: score });
-            records.sort((a,b) => b.score - a.score);
-            records = records.slice(0, 10);
-            localStorage.setItem('neon_records', JSON.stringify(records));
-            document.getElementById('player-name').value = '';
-            showLeaderboardScreen();
-        }
-    </script>
-</body>
-</html>
