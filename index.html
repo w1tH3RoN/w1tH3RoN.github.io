@@ -2,38 +2,393 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON SHIFT: INFINITY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Neon Crystals Quest</title>
     <style>
-        :root { --neon: #00f3ff; }
-        body { margin: 0; background: linear-gradient(135deg, #0f0c1b, #201335, #0f0c1b); color: #fff; font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; user-select: none; overflow: hidden; touch-action: none; }
-        #container { width: 92%; max-width: 380px; background: rgba(25, 18, 46, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 15px; box-shadow: 0 0 25px rgba(138,43,226,0.3); box-sizing: border-box; text-align: center; }
-        .screen { display: none; flex-direction: column; align-items: center; }
+        :root { --bg: #0d0e15; --panel: #161925; --neon-blue: #00f0ff; --neon-purple: #bd00ff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: sans-serif; }
+        body { background: var(--bg); color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        #app { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; display: flex; flex-direction: column; background: var(--panel); position: relative; box-shadow: 0 0 30px rgba(0,240,255,0.15); }
+        .screen { display: none; flex-direction: column; height: 100%; padding: 20px; justify-content: center; align-items: center; position: absolute; width: 100%; top: 0; left: 0; }
         .screen.active { display: flex; }
-        h1 { font-size: 26px; font-weight: 900; margin: 10px 0 20px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon), 0 0 20px #6c5ce7; text-transform: uppercase; line-height: 1.2; }
-        .btn { background: linear-gradient(135deg, #6c5ce7, var(--neon)); color: white; border: none; padding: 12px; font-size: 14px; border-radius: 25px; cursor: pointer; margin: 6px 0; width: 95%; font-weight: bold; text-transform: uppercase; box-shadow: 0 0 10px rgba(0,243,255,0.2); }
-        #hud { width: 100%; margin-bottom: 12px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; box-sizing: border-box; font-size: 14px; }
-        .row { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; }
-        .p-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 4px; }
-        .p-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, var(--neon)); box-shadow: 0 0 8px var(--neon); transition: width 0.3s; }
-        canvas { background: #05030f; border: 1px solid rgba(138,43,226,0.3); border-radius: 12px; display: block; width: 100%; height: auto; box-sizing: border-box; }
-        .leaderboard { width: 95%; margin: 10px 0; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 10px; box-sizing: border-box; max-height: 160px; overflow-y: auto; }
-        .leader-item { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        .leader-item:last-child { border: none; }
-        .save-box { display: flex; flex-direction: column; width: 95%; gap: 6px; margin: 5px 0; }
-        input { width: 100%; padding: 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: #fff; text-align: center; font-size: 14px; outline: none; box-sizing: border-box; }
+        h1 { font-size: 2.3rem; text-shadow: 0 0 12px var(--neon-blue); margin-bottom: 25px; text-align: center; font-weight: 800; }
+        button { background: transparent; border: 2px solid var(--neon-blue); color: #fff; padding: 12px 25px; font-size: 1.1rem; border-radius: 10px; cursor: pointer; margin: 8px 0; width: 85%; transition: 0.2s; text-shadow: 0 0 5px var(--neon-blue); box-shadow: inset 0 0 10px rgba(0,240,255,0.2); font-weight: bold; text-transform: uppercase; }
+        button:active { background: var(--neon-blue); color: #000; text-shadow: none; box-shadow: 0 0 25px var(--neon-blue); }
+        .hud { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); padding: 12px 5px; background: rgba(0,0,0,0.4); font-size: 0.85rem; text-align: center; border-bottom: 2px solid rgba(0,240,255,0.1); }
+        .hud div { font-weight: bold; text-shadow: 0 0 5px rgba(255,255,255,0.3); display: flex; flex-direction: column; justify-content: center; }
+        #canvas-container { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; overflow: hidden; background: rgba(0,0,0,0.25); }
+        canvas { display: block; touch-action: none; background: rgba(0,0,0,0.2); border-radius: 8px; }
+        .shop-bar { width: 100%; display: flex; justify-content: space-around; padding: 10px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05); }
+        .shop-btn { width: 45%; font-size: 0.9rem; padding: 8px; margin: 0; border-color: var(--neon-purple); text-shadow: 0 0 5px var(--neon-purple); box-shadow: inset 0 0 10px rgba(189,0,255,0.2); }
+        .shop-btn.selected { border-color: #fff; box-shadow: 0 0 15px #fff; }
+        .list-container { width: 100%; max-height: 250px; overflow-y: auto; margin-bottom: 20px; }
+        .list-item { width: 100%; display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 1.1rem; }
     </style>
 </head>
 <body>
-    <div id="container">
-        <!-- МЕНЮ -->
-        <div id="menu" class="screen active">
-            <h1>NEON SHIFT<br><span style="font-size:16px; color:var(--neon); font-weight:300">INFINITY</span></h1>
-            <button class="btn" onclick="startGame(0, false)">Рубины (Красные)</button>
-            <button class="btn" onclick="startGame(1, false)">Изумруды (Зеленые)</button>
-            <button class="btn" onclick="startGame(2, false)">Сапфиры (Синие)</button>
-            <button class="btn" style="background: linear-gradient(135deg, #2ed573, #00ff88);" onclick="startGame(-1, true)">🌌 Бесконечный Режим</button>
-            <button class="btn" style="background: #16213e; margin-top: 15px;" onclick="showLeaderboardScreen()">🏆 Рекорды</button>
+
+<div id="app">
+    <!-- МЕНЮ -->
+    <div id="menu-screen" class="screen active">
+        <h1>NEON CRYSTALS</h1>
+        <button onclick="startGame('campaign')">Старт Игры</button>
+        <button onclick="showScreen('leaderboard-screen')">Рекорды</button>
+    </div>
+
+    <!-- ИГРА -->
+    <div id="game-screen" class="screen" style="padding:0;">
+        <div class="hud">
+            <div>Ур.<span id="hud-level" style="color:var(--neon-blue);">1</span></div>
+            <div>Очки<span id="hud-score">0</span></div>
+            <div>Баланс<span id="hud-money" style="color:#00ff66;">€0</span></div>
+            <div>Цель:<span id="hud-target" style="font-size:0.75rem;margin-top:2px;">0/20</span></div>
+        </div>
+        <div id="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div class="shop-bar">
+            <button id="btn-hammer" class="shop-btn" onclick="buyItem('hammer')">🔨 Молот (€150)</button>
+            <button id="btn-bomb" class="shop-btn" onclick="buyItem('bomb')">💣 Бомба (€300)</button>
+        </div>
+        <button onclick="quitGame()" style="width:40%; margin: 10px auto; padding: 6px; font-size:0.9rem;">Выход</button>
+    </div>
+
+    <!-- ЛИДЕРЫ -->
+    <div id="leaderboard-screen" class="screen">
+        <h1>Макс. Уровень</h1>
+        <div class="list-container" id="leaderboard-list"></div>
+        <button onclick="showScreen('menu-screen')">Назад</button>
+    </div>
+</div>
+
+<script>
+    const CONFIG = {
+        rows: 8, cols: 8, size: 0,
+        colors: [ '#00f0ff', '#bd00ff', '#00ff66', '#ff9900', '#ff0055' ],
+        colorNames: [ 'Синих', 'Пурпур', 'Зеленых', 'Желтых', 'Красных' ]
+    };
+
+    let state = {
+        grid: [], score: 0, money: 0, level: 1, targetColor: 0, collected: 0, required: 20,
+        dragStart: null, isAnimating: false, particles: [], active: false, swapAnim: null, activeItem: null
+    };
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let leaders = JSON.parse(localStorage.getItem('nc_leaders')) || [{level:1, score:500}];
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'leaderboard-screen') {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+            [...leaders].sort((a,b) => b.level - a.level).forEach((l, idx) => {
+                list.innerHTML += `<div class="list-item"><span>${idx+1}. Уровень ${l.level}</span><span style="color:var(--neon-blue);">${l.score} Очков</span></div>`;
+            });
+        }
+    }
+
+    function drawCrystal(ctx, x, y, s, color, scale=1) {
+        ctx.save();
+        ctx.shadowColor = color; ctx.shadowBlur = 10;
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        ctx.translate(x + s/2, y + s/2); ctx.scale(scale, scale);
+        
+        const r = (s - 14) / 2;
+        ctx.fillStyle = color + '20';
+        ctx.beginPath();
+        // Отрисовка многогранного алмаза со скругленными ребрами
+        ctx.moveTo(0, -r);
+        ctx.lineTo(r * 0.7, -r * 0.4); ctx.lineTo(r, 0); ctx.lineTo(r * 0.7, r * 0.4);
+        ctx.lineTo(0, r);
+        ctx.lineTo(-r * 0.7, r * 0.4); ctx.lineTo(-r, 0); ctx.lineTo(-r * 0.7, -r * 0.4);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        
+        // Внутренние грани кристалла для эффекта блеска
+        ctx.strokeStyle = color + '66'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(0, r); ctx.moveTo(-r, 0); ctx.lineTo(r, 0); ctx.stroke();
+        ctx.restore();
+    }
+
+    function startGame() {
+        state.score = 0; state.money = 0; state.level = 1; state.activeItem = null;
+        initLevelData();
+        state.grid = []; state.particles = []; state.dragStart = null;
+        state.isAnimating = false; state.swapAnim = null; state.active = true;
+        updateHUD();
+        showScreen('game-screen');
+        setTimeout(() => { resizeCanvas(); initGrid(); requestAnimationFrame(gameLoop); }, 60);
+    }
+
+    function initLevelData() {
+        state.targetColor = Math.floor(Math.random() * CONFIG.colors.length);
+        state.collected = 0;
+        state.required = 15 + state.level * 5; // С каждым уровнем цель увеличивается на 5 кристаллов
+    }
+
+    function updateHUD() {
+        document.getElementById('hud-level').innerText = state.level;
+        document.getElementById('hud-score').innerText = state.score;
+        document.getElementById('hud-money').innerText = `€${state.money}`;
+        document.getElementById('hud-target').innerText = `${state.collected}/${state.required}\n${CONFIG.colorNames[state.targetColor]}`;
+        document.getElementById('btn-hammer').classList.toggle('selected', state.activeItem === 'hammer');
+        document.getElementById('btn-bomb').classList.toggle('selected', state.activeItem === 'bomb');
+    }
+
+    function buyItem(type) {
+        if(state.isAnimating) return;
+        if(state.activeItem === type) { state.activeItem = null; updateHUD(); return; }
+        const price = type === 'hammer' ? 150 : 300;
+        if(state.money >= price) { state.activeItem = type; } else { alert('Недостаточно €!'); }
+        updateHUD();
+    }
+
+    function quitGame() {
+        state.active = false;
+        if(state.score > 0) {
+            leaders.push({ level: state.level, score: state.score });
+            localStorage.setItem('nc_leaders', JSON.stringify(leaders.slice(0, 15)));
+        }
+        showScreen('menu-screen');
+    }
+
+    function resizeCanvas() {
+        const container = document.getElementById('canvas-container');
+        const size = Math.min(container.clientWidth, container.clientHeight, 400);
+        canvas.width = size; canvas.height = size;
+        CONFIG.size = size / CONFIG.cols;
+    }
+
+    function initGrid() {
+        for(let r=0; r<CONFIG.rows; r++) {
+            state.grid[r] = [];
+            for(let c=0; c<CONFIG.cols; c++) {
+                let id;
+                do { id = Math.floor(Math.random() * CONFIG.colors.length); } while (wouldCreateMatch(r, c, id));
+                state.grid[r][c] = { id: id, animY: 0, isDropping: false };
+            }
+        }
+    }
+
+    function wouldCreateMatch(r, c, id) {
+        if (c >= 2 && state.grid[r][c-1]?.id === id && state.grid[r][c-2]?.id === id) return true;
+        if (r >= 2 && state.grid[r-1]?.[c]?.id === id && state.grid[r-2]?.[c]?.id === id) return true;
+        return false;
+    }
+
+    function spawnExplosion(x, y, color) {
+        for (let i = 0; i < 8; i++) {
+            const angle = Math.random() * Math.PI * 2, speed = 1 + Math.random() * 3;
+            state.particles.push({ x: x + CONFIG.size/2, y: y + CONFIG.size/2, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, alpha: 1, color: color });
+        }
+    }
+
+    function processMatches() {
+        let matchGrid = Array.from({length: CONFIG.rows}, () => Array(CONFIG.cols).fill(false));
+        let found = false;
+
+        for (let r = 0; r < CONFIG.rows; r++) {
+            for (let c = 0; c < CONFIG.cols - 2; c++) {
+                let id = state.grid[r][c]?.id;
+                if (id !== null && id === state.grid[r][c+1]?.id && id === state.grid[r][c+2]?.id) { matchGrid[r][c] = matchGrid[r][c+1] = matchGrid[r][c+2] = true; found = true; }
+            }
+        }
+        for (let r = 0; r < CONFIG.rows - 2; r++) {
+            for (let c = 0; c < CONFIG.cols; c++) {
+                let id = state.grid[r][c]?.id;
+                if (id !== null && id === state.grid[r+1][c]?.id && id === state.grid[r+2][c]?.id) { matchGrid[r][c] = matchGrid[r+1][c] = matchGrid[r+2][c] = true; found = true; }
+            }
+        }
+
+        if (found) {
+            let count = 0;
+            for (let r = 0; r < CONFIG.rows; r++) {
+                for (let c = 0; c < CONFIG.cols; c++) {
+                    if (matchGrid[r][c] && state.grid[r][c].id !== null) {
+                        if(state.grid[r][c].id === state.targetColor) state.collected++;
+                        spawnExplosion(c * CONFIG.size, r * CONFIG.size, CONFIG.colors[state.grid[r][c].id]);
+                        state.grid[r][c].id = null; count++;
+                    }
+                }
+            }
+            state.score += count * 10;
+            state.money += count * 5; // Зарабатываем евро за разрушения
+            updateHUD();
+            checkWinCondition();
+        } else { state.isAnimating = false; }
+    }
+
+    function checkWinCondition() {
+        if(state.collected >= state.required) {
+            state.isAnimating = true;
+            setTimeout(() => {
+                alert(`Уровень ${state.level} Пройден! Переход на следующий уровень.`);
+                state.level++;
+                initLevelData();
+                initGrid();
+                state.isAnimating = false;
+                updateHUD();
+            }, 400);
+        } else { applyGravity(); }
+    }
+
+    function applyGravity() {
+        state.isAnimating = true;
+        for (let c = 0; c < CONFIG.cols; c++) {
+            let emptyRows = 0;
+            for (let r = CONFIG.rows - 1; r >= 0; r--) {
+                if (state.grid[r][c].id === null) { emptyRows++; }
+                else if (emptyRows > 0) {
+                    state.grid[r + emptyRows][c].id = state.grid[r][c].id;
+                    state.grid[r + emptyRows][c].animY = -emptyRows * CONFIG.size;
+                    state.grid[r + emptyRows][c].isDropping = true;
+                    state.grid[r][c].id = null;
+                }
+            }
+            for (let k = 0; k < emptyRows; k++) {
+                state.grid[k][c].id = Math.floor(Math.random() * CONFIG.colors.length);
+                state.grid[k][c].animY = -emptyRows * CONFIG.size;
+                state.grid[k][c].isDropping = true;
+            }
+        }
+    }
+
+    function handleUseItem(r, c) {
+        if(state.activeItem === 'hammer') {
+            state.money -= 150;
+            if(state.grid[r][c].id === state.targetColor) state.collected++;
+            spawnExplosion(c * CONFIG.size, r * CONFIG.size, CONFIG.colors[state.grid[r][c].id]);
+            state.grid[r][c].id = null;
+        } else if(state.activeItem === 'bomb') {
+            state.money -= 300;
+            for(let i = -1; i <= 1; i++) {
+                for(let j = -1; j <= 1; j++) {
+                    let nr = r + i, nc = c + j;
+                    if(nr >= 0 && nr < CONFIG.rows && nc >= 0 && nc < CONFIG.cols && state.grid[nr][nc].id !== null) {
+                        if(state.grid[nr][nc].id === state.targetColor) state.collected++;
+                        spawnExplosion(nc * CONFIG.size, nr * CONFIG.size, CONFIG.colors[state.grid[nr][nc].id]);
+                        state.grid[nr][nc].id = null;
+                    }
+                }
+            }
+        }
+        state.activeItem = null;
+        updateHUD();
+        checkWinCondition();
+    }
+
+    function pointerDown(clientX, clientY) {
+        if (state.isAnimating || !state.active) return;
+        const rect = canvas.getBoundingClientRect();
+        const c = Math.floor((clientX - rect.left) / CONFIG.size);
+        const r = Math.floor((clientY - rect.top) / CONFIG.size);
+        if (r < 0 || r >= CONFIG.rows || c < 0 || c >= CONFIG.cols) return;
+
+        if(state.activeItem) { handleUseItem(r, c); return; }
+        state.dragStart = { r, c, x: clientX, y: clientY };
+    }
+
+    function pointerMove(clientX, clientY) {
+        if (!state.dragStart || state.isAnimating) return;
+        const dx = clientX - state.dragStart.x, dy = clientY - state.dragStart.y, minDist = CONFIG.size * 0.4;
+
+        if (Math.abs(dx) > minDist || Math.abs(dy) > minDist) {
+            let targetR = state.dragStart.r, targetC = state.dragStart.c;
+            if (Math.abs(dx) > Math.abs(dy)) { targetC += dx > 0 ? 1 : -1; } else { targetR += dy > 0 ? 1 : -1; }
+
+            if (targetR >= 0 && targetR < CONFIG.rows && targetC >= 0 && targetC < CONFIG.cols) {
+                state.isAnimating = true;
+                state.swapAnim = { r1: state.dragStart.r, c1: state.dragStart.c, r2: targetR, c2: targetC, t: 0, direction: 1 };
+            }
+            state.dragStart = null;
+        }
+    }
+
+    function pointerUp() { state.dragStart = null; }
+    function easeInOutQuad(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
+
+    function update() {
+        for (let i = state.particles.length - 1; i >= 0; i--) {
+            let p = state.particles[i]; p.x += p.vx; p.y += p.vy; p.alpha -= 0.04;
+            if (p.alpha <= 0) state.particles.splice(i, 1);
+        }
+
+        if (state.swapAnim) {
+            let sa = state.swapAnim; sa.t += 0.08 * sa.direction;
+            if (sa.t >= 1) {
+                sa.t = 1;
+                let temp = state.grid[sa.r1][sa.c1].id; state.grid[sa.r1][sa.c1].id = state.grid[sa.r2][sa.c2].id; state.grid[sa.r2][sa.c2].id = temp;
+                if (hasAnyMatches()) { state.swapAnim = null; processMatches(); } else { sa.direction = -1; }
+            } else if (sa.t <= 0) {
+                let temp = state.grid[sa.r1][sa.c1].id; state.grid[sa.r1][sa.c1].id = state.grid[sa.r2][sa.c2].id; state.grid[sa.r2][sa.c2].id = temp;
+                state.swapAnim = null; state.isAnimating = false;
+            }
+            return;
+        }
+
+        let dropping = false;
+        for (let r = 0; r < CONFIG.rows; r++) {
+            for (let c = 0; c < CONFIG.cols; c++) {
+                let f = state.grid[r][c];
+                if (f?.isDropping) { f.animY += 8; if (f.animY >= 0) { f.animY = 0; f.isDropping = false; } else { dropping = true; } }
+            }
+        }
+        if (state.isAnimating && !dropping) processMatches();
+    }
+
+    function hasAnyMatches() {
+        for (let r = 0; r < CONFIG.rows; r++) {
+            for (let c = 0; c < CONFIG.cols; c++) {
+                let id = state.grid[r][c].id; if (id === null) continue;
+                if (c < CONFIG.cols - 2 && id === state.grid[r][c+1]?.id && id === state.grid[r][c+2]?.id) return true;
+                if (r < CONFIG.rows - 2 && id === state.grid[r+1][c]?.id && id === state.grid[r+2][c]?.id) return true;
+            }
+        }
+        return false;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)'; ctx.lineWidth = 1;
+        for (let i = 0; i <= CONFIG.cols; i++) {
+            ctx.beginPath(); ctx.moveTo(i * CONFIG.size, 0); ctx.lineTo(i * CONFIG.size, canvas.height); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i * CONFIG.size); ctx.lineTo(canvas.width, i * CONFIG.size); ctx.stroke();
+        }
+
+        for (let r = 0; r < CONFIG.rows; r++) {
+            for (let c = 0; c < CONFIG.cols; c++) {
+                let gem = state.grid[r][c]; if (!gem || gem.id === null) continue;
+                let drawX = c * CONFIG.size, drawY = r * CONFIG.size, currentScale = 1;
+                if (gem.isDropping) drawY += gem.animY;
+
+                if (state.swapAnim) {
+                    let sa = state.swapAnim, ep = easeInOutQuad(sa.t);
+                    let oX = (sa.c2 - sa.c1) * CONFIG.size * ep, oY = (sa.r2 - sa.r1) * CONFIG.size * ep;
+                    if (r === sa.r1 && c === sa.c1) { drawX += oX; drawY += oY; currentScale = 1 + Math.sin(sa.t * Math.PI) * 0.12; } 
+                    else if (r === sa.r2 && c === sa.c2) { drawX -= oX; drawY -= oY; currentScale = 1 - Math.sin(sa.t * Math.PI) * 0.08; }
+                }
+                if (drawY >= -CONFIG.size / 2) drawCrystal(ctx, drawX, drawY, CONFIG.size, CONFIG.colors[gem.id], currentScale);
+            }
+        }
+
+        state.particles.forEach(p => {
+            ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); ctx.restore();
+        });
+    }
+
+    function gameLoop() { if (!state.active) return; update(); draw(); requestAnimationFrame(gameLoop); }
+
+    canvas.addEventListener('mousedown', (e) => pointerDown(e.clientX, e.clientY));
+    window.addEventListener('mousemove', (e) => pointerMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', pointerUp);
+    canvas.addEventListener('touchstart', (e) => { if(e.touches.length > 0) pointerDown(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if(e.touches.length > 0) pointerMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+    window.addEventListener('touchend', pointerUp);
+    window.addEventListener('resize', () => { if(state.active) resizeCanvas(); });
+</script>
+</body>
+</html>
         </div>
         
         <!-- ИГРОВОЙ ЭКРАН -->
