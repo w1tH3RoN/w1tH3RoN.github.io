@@ -3,37 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Защита Башни</title>
+    <title>NEON SHIFT: INFINITY</title>
     <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body { margin: 0; background: #0a0a16; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; touch-action: none; }
-        canvas { border: 2px solid #00ffcc; background: #0d1117; box-shadow: 0 0 30px rgba(0,255,204,.3); max-width: 100vw; max-height: 75vw; touch-action: none; display: block; }
-        #ui { margin-bottom: 10px; font-size: 22px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 10px rgba(0,255,204,.5); display: flex; gap: 20px; }
-        #btn-container { display: flex; gap: 15px; margin-top: 15px; width: 800px; max-width: 100vw; justify-content: space-around; padding: 0 10px; }
-        .btn { flex: 1; padding: 12px; font-size: 16px; font-weight: bold; border: 2px solid #00ffcc; background: #0d1117; color: #fff; border-radius: 8px; cursor: pointer; text-shadow: 0 0 5px #00ffcc; box-shadow: 0 0 10px rgba(0,255,204,.2); transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        .btn:disabled { border-color: #555; color: #555; text-shadow: none; box-shadow: none; cursor: not-allowed; }
+        :root { --neon: #00f3ff; }
+        body { margin: 0; background: linear-gradient(135deg, #0f0c1b, #201335, #0f0c1b); color: #fff; font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; user-select: none; overflow: hidden; touch-action: none; }
+        #container { width: 92%; max-width: 380px; background: rgba(25, 18, 46, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 15px; box-shadow: 0 0 25px rgba(138,43,226,0.3); box-sizing: border-box; text-align: center; }
+        .screen { display: none; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+        h1 { font-size: 26px; font-weight: 900; margin: 10px 0 20px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon), 0 0 20px #6c5ce7; text-transform: uppercase; line-height: 1.2; }
+        .btn { background: linear-gradient(135deg, #6c5ce7, var(--neon)); color: white; border: none; padding: 12px; font-size: 14px; border-radius: 25px; cursor: pointer; margin: 6px 0; width: 95%; font-weight: bold; text-transform: uppercase; box-shadow: 0 0 10px rgba(0,243,255,0.2); }
+        #hud { width: 100%; margin-bottom: 12px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; box-sizing: border-box; font-size: 14px; }
+        .row { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; }
+        .p-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+        .p-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, var(--neon)); box-shadow: 0 0 8px var(--neon); transition: width 0.3s; }
+        canvas { background: #05030f; border: 1px solid rgba(138,43,226,0.3); border-radius: 12px; display: block; width: 100%; height: auto; box-sizing: border-box; }
+        .leaderboard { width: 95%; margin: 10px 0; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 10px; box-sizing: border-box; max-height: 160px; overflow-y: auto; }
+        .leader-item { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .leader-item:last-child { border: none; }
+        .save-box { display: flex; flex-direction: column; width: 95%; gap: 6px; margin: 5px 0; }
+        input { width: 100%; padding: 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: #fff; text-align: center; font-size: 14px; outline: none; box-sizing: border-box; }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <div>Счет: <span id="sc">0</span></div>
-        <div>Жизни: <span id="lv">5</span></div>
-        <div>Уровень: <span id="tier">1</span></div>
-    </div>
-    <canvas id="canv" width="800" height="600"></canvas>
-    <div id="btn-container">
-        <button id="ultBtn" class="btn" disabled>УЛЬТА (30с)</button>
-        <button id="upgBtn" class="btn" disabled>АПГРЕЙД (60с)</button>
-    </div>
-<script>
-const cv = document.getElementById("canv"), ctx = cv.getContext("2d");
-const scEl = document.getElementById("sc"), lvEl = document.getElementById("lv"), tierEl = document.getElementById("tier");
-const ultBtn = document.getElementById("ultBtn"), upgBtn = document.getElementById("upgBtn");
+    <div id="container">
+        <!-- МЕНЮ -->
+        <div id="menu" class="screen active">
+            <h1>NEON SHIFT<br><span style="font-size:16px; color:var(--neon); font-weight:300">INFINITY</span></h1>
+            <button class="btn" onclick="startGame(0, false)">Рубины (Красные)</button>
+            <button class="btn" onclick="startGame(1, false)">Изумруды (Зеленые)</button>
+            <button class="btn" onclick="startGame(2, false)">Сапфиры (Синие)</button>
+            <button class="btn" style="background: linear-gradient(135deg, #2ed573, #00ff88);" onclick="startGame(-1, true)">🌌 Бесконечный Режим</button>
+            <button class="btn" style="background: #16213e; margin-top: 15px;" onclick="showLeaderboardScreen()">🏆 Рекорды</button>
+        </div>
+        
+        <!-- ИГРОВОЙ ЭКРАН -->
+        <div id="game" class="screen">
+            <div id="hud">
+                <div class="row">
+                    <div id="lvl-txt">Уровень: 1</div>
+                    <div>Счет: <span id="score-txt">0</span></div>
+                </div>
+                <div class="row" style="margin:4px 0 0; color:var(--neon);"><div id="target-txt"></div></div>
+                <div class="p-bar" id="progress-wrapper"><div id="p-fill" class="p-fill"></div></div>
+            </div>
+            <canvas id="canvas" width="320" height="320"></canvas>
+            <button class="btn" style="margin-top:12px; width:50%; padding:8px; font-size:13px;" onclick="backToMenu()">В меню</button>
+        </div>
 
-let score = 0, lives = 5, gameOver = false, spawnTimer;
-let ultTimeLeft = 30, upgTimeLeft = 60, towerTier = 1, shockwave = null, lastTime = 0;
-const bullets = [], enemies = [], particles = [], mouse = { x: 400, y: 300 };
-const tower = { x: 400, y: 300, r: 35, angle: 0, targetAngle: 0, cd: 0, fireRate: 14, bulletSpeed: 9 };
+        <!-- ТАБЛИЦА РЕКОРДОВ -->
+        <div id="records-screen" class="screen">
+            <h1>ТАБЛИЦА РЕКОРДОВ</h1>
+            <div class="leaderboard" id="leaderboard-list"></div>
+            <button class="btn" onclick="showScreen('menu')">Назад</button>
+        </div>
+
+        <!-- ЗАПИСЬ РЕКОРДА -->
+        <div id="save-screen" class="screen">
+            <h1>ИГРА ОКОНЧЕНА</h1>
+            <p style="font-size:16px; margin: 0 0 10px;">Ваш счет: <span id="final-score" style="color:var(--neon); font-weight:bold;">0</span></p>
+            <div class="save-box">
+                <input type="text" id="player-name" placeholder="Ваше имя" maxlength="12">
+                <button class="btn" style="width:100%; margin: 6px 0 0;" onclick="saveScore()">Записать рекорд</button>
+            </div>
+            <button class="btn" style="background:#16213e; margin-top: 4px;" onclick="showScreen('menu')">Пропустить</button>
+        </div>
+    </div>
+
+    <script>
+        const cvs = document.getElementById('canvas'), ctx = cvs.getContext('2d'), W = 8, S = 40;
+        let board = [], score = 0, lvl = 1, tColor = 0, tAmt = 15, collected = 0, lock = false, drag = null, anims = [], loopActive = false;
+        let lastMove = null, isInfiniteMode = false;
+        const colors = ['#ff4757', '#00ff88', '#00f3ff', '#ffaa00', '#b537ff'], names = ["Рубины", "Изумруды", "Сапфиры", "Янтарь", "Аметисты"];
+
+        function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        
+        function startGame(col, isInfinite) {
+            tColor = col; isInfiniteMode = isInfinite; lvl = 1; tAmt = 15; score = 0; collected = 0; lock = false; board = []; anims = []; lastMove = null;
+            document.getElementById('progress-wrapper').style.display = isInfiniteMode ? 'none' : 'block';
+            for(let r=0; r<W; r++) {
+                board[r] = []; for(let c=0; c<W; c++) {
+                    let cl; do { cl = Math.floor(Math.random()*5); } while((c>=2 && board[r][c-1]==cl && board[r][c-2]==cl) || (r>=2 && board[r-1][c]==cl && board[r-2][c]==cl));
+                    board[r][c] = cl;
+                }
+            }
+            updateHUD(); showScreen('game'); if(!loopActive) { loopActive = true; drawLoop(); }
+        }
+        
+        function updateHUD() {
+            document.getElementById('score-txt').innerText = score;
+            document.getElementById('lvl-txt').innerText = isInfiniteMode ? "Режим: Дзен" : `Уровень: ${lvl}`;
+            document.getElementById('target-txt').innerText = isInfiniteMode ? "Собирайте любые комбинации!" : `Цель (${names[tColor]}): ${collected} / ${tAmt}`;
+            document.getElementById('p-fill').style.width = isInfiniteMode ? '0%' : `${Math.min((collected/tAmt)*100, 100)}%`;
+        }
+        
+        function backToMenu() { loopActive = false; document.getElementById('final-score').innerText = score; showScreen('save-screen'); }
+
+        function draw() {
+            ctx.clearRect(0,0,320,320);
+            for(let r=0; r<W; r++) {
+                for(let c=0; c<W; c++) {
+                    if(board[r][c] === null) continue;
+                    let drawX = c*S, drawY = r*S, scale = 1, alpha = 1;
+                    let a = anims.find(x => x.r === r && x.c === c);
+                    if(a) { drawX = a.x; drawY = a.y; scale = a.scale; alpha = a.alpha; }
+                    if(alpha <= 0) continue;
+                    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(drawX+S/2, drawY+S/2); ctx.scale(scale, scale);
+                    ctx.fillStyle = colors[board[r][c]]; ctx.shadowBlur = 8; ctx.shadowColor = colors[board[r][c]];
+                    ctx.beginPath(); ctx.moveTo(0, -S/2.4); ctx.lineTo(S/2.4, 0); ctx.lineTo(0, S/2.4); ctx.lineTo(-S/2.4, 0); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.moveTo(0, -S/2.4); ctx.lineTo(S/4.5, -S/4.5); ctx.lineTo(0, 0); ctx.lineTo(-S/4.5, -S/4.5); ctx.closePath(); ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+        
+        function drawLoop() { if(!loopActive) return; updateAnims(); draw(); requestAnimationFrame(drawLoop); }
+
+        function updateAnims() {
+            let done = true, hasDestroy = false, hasMove = false;
+            anims.forEach(a => {
+                let tx = a.tc*S, ty = a.tr*S;
+                if(a.type === 'move') {
+                    hasMove = true;
+                    let dx = tx - a.x, dy = ty - a.y;
+                    if(Math.abs(dx)>0.5) { a.x += dx*0.3; done = false; } else a.x = tx;
+                    if(Math.abs(dy)>0.5) { a.y += dy*0.3; done = false; } else a.y = ty;
+                } else if(a.type === 'destroy') {
+                    hasDestroy = true;
+                    if(a.scale > 0.1) { a.scale -= 0.15; a.alpha -= 0.15; done = false; } else { a.scale = 0; a.alpha = 0; }
+                }
+            });
+            if(done && anims.length > 0) { 
+                anims = []; 
+                if(hasDestroy) dropGems(); 
+                else if(hasMove) { if(lastMove) checkAfterMove(); else { let m = findMatches(); if(m.length > 0) clearMatches(m); else lock = false; } }
+            }
+        }
+
+        function getXY(e) {
+            let rect = cvs.getBoundingClientRect(), scaleX = 320/rect.width, scaleY = 320/rect.height;
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { c: Math.floor((clientX - rect.left)*scaleX/S), r: Math.floor((clientY - rect.top)*scaleY/S), x: clientX, y: clientY };
+        }
+        cvs.addEventListener('mousedown', e => { if(!lock) drag = getXY(e); });
+        cvs.addEventListener('touchstart', e => { if(!lock) drag = getXY(e); }, {passive:true});
+        
+        function handleMove(clientX, clientY) {
+            if(!drag) return;
+            let dX = clientX - drag.x, dY = clientY - drag.y;
+            if(Math.abs(dX) > 20 || Math.abs(dY) > 20) {
+                let tr = drag.r, tc = drag.c;
+                if(Math.abs(dX) > Math.abs(dY)) tc += dX > 0 ? 1 : -1; else tr += dY > 0 ? 1 : -1;
+                if(tr>=0 && tr<W && tc>=0 && tc<W && (Math.abs(drag.r-tr)+Math.abs(drag.c-tc)===1)) {
+                    lock = true; lastMove = { r1: drag.r, c1: drag.c, r2: tr, c2: tc };
+                    anims.push({r:tr, c:tc, x:drag.c*S, y:drag.r*S, tr:tr, tc:tc, type:'move', scale:1, alpha:1});
+                    anims.push({r:drag.r, c:drag.c, x:tc*S, y:tr*S, tr:drag.r, tc:drag.c, type:'move', scale:1, alpha:1});
+                    swap(drag.r, drag.c, tr, tc);
+                }
+                drag = null;
+            }
+        }
+        window.addEventListener('mousemove', e => { if(drag) handleMove(e.clientX, e.clientY); });
+        window.addEventListener('touchmove', e => { if(drag && e.touches.length) handleMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
+        window.addEventListener('mouseup', () => drag = null); window.addEventListener('touchend', () => drag = null);
+
+        function swap(r1,c1,r2,c2) { let t=board[r1][c1]; board[r1][c1]=board[r2][c2]; board[r2][c2]=t; }
+        
+        function checkAfterMove() {
+            let m = findMatches();
+            if(m.length > 0) { lastMove = null; clearMatches(m); } 
+            else {
+                let lm = lastMove; lastMove = null; swap(lm.r1, lm.c1, lm.r2, lm.c2);
+                anims.push({r:lm.r2, c:lm.c2, x:lm.c1*S, y:lm.r1*S, tr:lm.r2, tc:lm.c2, type:'move', scale:1, alpha:1});
+                anims.push({r:lm.r1, c:lm.c1, x:lm.c2*S, y:lm.r2*S, tr:lm.r1, tc:lm.c1, type:'move', scale:1, alpha:1});
+            }
+        }
+
+        function findMatches() {
+            let m = Array.from({length:W}, () => Array(W).fill(false)), found = [];
+            for(let r=0; r<W; r++) for(let c=0; c<W-2; c++) { let cl=board[r][c]; if(cl!==null && cl==board[r][c+1] && cl==board[r][c+2]) m[r][c]=m[r][c+1]=m[r][c+2]=true; }
+            for(let c=0; c<W; c++) for(let r=0; r<W-2; r++) { let cl=board[r][c]; if(cl!==null && cl==board[r+1][c] && cl==board[r+2][c]) m[r][c]=m[r+1][c]=m[r+2][c]=true; }
+            for(let r=0; r<W; r++) for(let c=0; c<W; c++) if(m[r][c]) found.push({r, c});
+            return found;
+        }
+
+        function clearMatches(m) {
+            m.forEach(({r,c}) => {
+                if(board[r][c]!==null) { 
+                    if(board[r][c]===tColor || isInfiniteMode) collected++; score+=10; 
+                    anims.push({r,c,x:c*S,y:r*S,scale:1,alpha:1,type:'destroy'}); board[r][c] = null;
+                }
+            });
+            updateHUD();
+        }
+
+        function dropGems() {
+            for(let c=0; c<W; c++) {
+                let spaces = 0;
+                for(let r=W-1; r >= 0; r--) {
+                    if(board[r][c] === null) spaces++;
+                    else if(spaces > 0) {
+                        let tR = r + spaces; board[tR][c] = board[r][c]; board[r][c] = null;
+                        anims.push({r:tR, c:c, x:c*S, y:r*S, tr:tR, tc:c, type:'move', scale:1, alpha:1});
+                    }
+                }
+                for(let i=0; i<spaces; i++) {
+                    let tR = spaces-1-i, cl = Math.floor(Math.random()*5); board[tR][c] = cl;
+                    anims.push({r:tR, c:c, x:c*S, y:-(i+1)*S, tr:tR, tc:c, type:'move', scale:1, alpha:1});
+                }
+            }
+            if(anims.length === 0) { lock = false; checkLvl(); }
+        }
+
+        function checkLvl() {
+            if(!isInfiniteMode && collected >= tAmt) { lvl++; collected = 0; tAmt = Math.floor(tAmt*1.3)+5; }
+            updateHUD(); let m = findMatches(); if(m.length>0) clearMatches(m); else lock = false;
+        }
+
+        function showLeaderboardScreen() {
+            const list = document.getElementById('leaderboard-list'); list.innerHTML = '';
+            let records = JSON.parse(localStorage.getItem('neon_records')) || [];
+            if(records.length === 0) list.innerHTML = '<div style="text-align:center; padding:10px; opacity:0.5;">Нет рекордов</div>';
+            records.forEach((r, idx) => {
+                list.innerHTML += `<div class="leader-item"><span>${idx+1}. ${r.name}</span><span style="color:var(--neon); font-weight:bold;">${r.score}</span></div>`;
+            });
+            showScreen('records-screen');
+        }
+
+        function saveScore() {
+            let name = document.getElementById('player-name').value.trim() || "Аноним";
+            let records = JSON.parse(localStorage.getItem('neon_records')) || [];
+            records.push({ name: name, score: score });
+            records.sort((a,b) => b.score - a.score);
+            records = records.slice(0, 10);
+            localStorage.setItem('neon_records', JSON.stringify(records));
+            document.getElementById('player-name').value = '';
+            showLeaderboardScreen();
+        }
+    </script>
+</body>
+</html>
 
 // Сверхнадежный расчет координат, работающий при любом скролле/масштабе
 const handlePointer = (clientX, clientY) => {
